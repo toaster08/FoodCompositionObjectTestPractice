@@ -456,32 +456,32 @@ extension Array where Element == FoodComposition {
 //イニシャライズ
 class FoodTableUseCaseTest: XCTestCase {
     
-    static let testFoods = [
-        FoodComposition(food: FoodCompositionRealm(id: 1,
-                                                   protein: 20,
-                                                   category: "１ 穀類")),
-        FoodComposition(food: FoodCompositionRealm(id: 2,
-                                                   protein: 30,
-                                                   category: "２ いも及びでん粉類")),
-        FoodComposition(food: FoodCompositionRealm(id: 3,
-                                                   protein: 40,
-                                                   category: "２ いも及びでん粉類")),
-        FoodComposition(food: FoodCompositionRealm(id: 4,
-                                                   protein: 50,
-                                                   category: "18　調理済み流通食品類")),
-        FoodComposition(food: FoodCompositionRealm(id: 5,
-                                                   protein: 60,
-                                                   category: "１ 穀類")),
-        FoodComposition(food: FoodCompositionRealm(id: 6,
-                                                   protein: 70,
-                                                   category: "18　調理済み流通食品類")),
-        FoodComposition(food: FoodCompositionRealm(id: 7,
-                                                   protein: 20,
-                                                   category: "１ 穀類"))
-    ]
-
-    
     let foodTableUseCase = FoodTableUseCase()
+    
+//    static let testFoods = [
+//        FoodComposition(food: FoodCompositionRealm(id: 1,
+//                                                   protein: 20,
+//                                                   category: "１ 穀類")),
+//        FoodComposition(food: FoodCompositionRealm(id: 2,
+//                                                   protein: 30,
+//                                                   category: "２ いも及びでん粉類")),
+//        FoodComposition(food: FoodCompositionRealm(id: 3,
+//                                                   protein: 40,
+//                                                   category: "２ いも及びでん粉類")),
+//        FoodComposition(food: FoodCompositionRealm(id: 4,
+//                                                   protein: 50,
+//                                                   category: "18　調理済み流通食品類")),
+//        FoodComposition(food: FoodCompositionRealm(id: 5,
+//                                                   protein: 60,
+//                                                   category: "１ 穀類")),
+//        FoodComposition(food: FoodCompositionRealm(id: 6,
+//                                                   protein: 70,
+//                                                   category: "18　調理済み流通食品類")),
+//        FoodComposition(food: FoodCompositionRealm(id: 7,
+//                                                   protein: 20,
+//                                                   category: "１ 穀類"))
+//    ]
+
     
     let food =  FoodComposition(food: FoodCompositionRealm(id: 2,
                                                            protein: 1,
