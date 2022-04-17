@@ -500,12 +500,17 @@ class FoodTableUseCaseTest: XCTestCase {
                                                    category: "２ いも及びでん粉類"))
     ]
     
+    func test_エラーメッセージを表示させること() {
+        let Nil:Int? = nil
+        XCTAssertNotNil(Nil,"エラーメッセージが表示される")
+    }
+    
     func test_配列に含まれた食品総数の算出(){
         
         foodTableUseCase.selectedFoods = testFoods
         
         let totalFoodsCount = foodTableUseCase.totalSelectedFoodCount
-        XCTAssertEqual(totalFoodsCount, testFoods.count, "配列の要素数と食品総数の値が一致")
+        XCTAssertEqual(totalFoodsCount, testFoods.count)
     }
     
     func test_ケトン比の算出() {
