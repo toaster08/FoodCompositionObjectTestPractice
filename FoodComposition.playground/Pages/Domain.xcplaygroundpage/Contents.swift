@@ -574,7 +574,7 @@ class FoodTableUseCaseTest: XCTestCase {
         XCTAssertEqual(lipidRequirement, expected)
     }
     
-    func test_栄養素量_nilでのフィルタリング() {
+    func test_栄養素量_nilでのフィルタリング_空の配列が返されること() {
         //状態
 
         //操作
@@ -584,7 +584,7 @@ class FoodTableUseCaseTest: XCTestCase {
         XCTAssertEqual(filterdFoods, expected)
     }
     
-    func test_栄養素量でのフィルタリング() {
+    func test_栄養素量でのフィルタリング_栄養素の値含むの範囲内で返されること() {
         //状態
         
         //操作
@@ -602,7 +602,7 @@ class FoodTableUseCaseTest: XCTestCase {
         XCTAssertEqual(filterdFoods, expected)
     }
     
-    func test_栄養素カテゴリ名でのフィルタリング() {
+    func test_栄養素カテゴリ名でのフィルタリング_カテゴリ名が一致する要素のみ返されること() {
         //状態
         
         //操作
@@ -617,7 +617,7 @@ class FoodTableUseCaseTest: XCTestCase {
         XCTAssertEqual(filterdFoods, expected)
     }
     
-    func test_カテゴリ名によるソート() {
+    func test_カテゴリ名によるソート_返される配列に変化がないこと() {
         //状態
         
         //操作
@@ -628,7 +628,7 @@ class FoodTableUseCaseTest: XCTestCase {
         XCTAssertEqual(sortedSelectFoods, expected)
     }
     
-    func test_栄養素名による昇順ソート_引数min_nil_max_nil() {
+    func test_引数nilでの栄養素名による昇順ソート_指定された栄養素の重量で昇順に並んだ配列が返される() {
         //状態
         
         //操作
@@ -649,7 +649,7 @@ class FoodTableUseCaseTest: XCTestCase {
         XCTAssertEqual(sortedSelectFoods, expected)
     }
     
-    func test_栄養素名による昇順ソート() {
+    func test_引数ありでの栄養素名による昇順ソート_指定された栄養素の重量で昇順に並んだ配列が返される() {
         //状態
         
         //操作
@@ -670,7 +670,7 @@ class FoodTableUseCaseTest: XCTestCase {
         XCTAssertEqual(sortedSelectFoods, expected)
     }
     
-    func test_選択された食品一覧へのの追加() {
+    func test_選択された食品一覧へのの追加_追加する配列の元の要素数に１が加算された値が返されること() {
         //状態
 
         //操作
@@ -679,7 +679,7 @@ class FoodTableUseCaseTest: XCTestCase {
         XCTAssertEqual(addedSelectFoodList.count, testFoods.count + 1)
     }
     
-    func test_選択された食品一覧からの削除() {
+    func test_選択された食品一覧からの削除_削除する配列の元の要素数に１を減じた値が返されること() {
         //状態
 
         //操作
