@@ -23,41 +23,84 @@ import Darwin
 
 enum Composition {
     
+    case water(min:Double?,max:Double?)
+    case energy(min:Int?,max:Int?)
     case protein(min:Double?,max:Double?)
-    case weight(min:Double?,max:Double?)
+    case fat(min:Double?,max:Double?)
+    case dietaryfiber(min:Double?,max:Double?)
+    case carbohydrate(min:Double?,max:Double?)
     case category(CategoryType)
+    case weight(min:Double?,max:Double?)
+    
     
     var nameString: String {
         switch self {
+        case .water:  return "水分量"
+        case .energy: return "エネルギー量"
         case .protein: return "たんぱく質"
-        case .weight: return "重量"
+        case .fat: return "脂質量"
+        case .dietaryfiber: return "食物繊維"
+        case .carbohydrate: return "炭水化物"
         case .category: return "カテゴリ"
+        case .weight: return "重量"
         }
     }
     
     //CaseIterableを準拠できないのでプロパティとして書き起こす
     static var allCases: [Composition] {
         return [
+            .water(min: nil, max: nil),
+            .energy(min: nil, max: nil),
             .protein(min: nil, max: nil),
-            .weight(min: nil, max: nil),
-            .category(.kokurui)
+            .fat(min: nil, max: nil),
+            .dietaryfiber(min: nil, max: nil),
+            .carbohydrate(min: nil, max: nil),
+            .category(.koku),
+            .weight(min: nil, max: nil)
         ]
     }
 }
 
 enum CategoryType:Int, CaseIterable {
-    case kokurui = 0
+    case koku = 0
     case imo
     case satou
+    case mame
+    case syuzitsu
+    case yasai
+    case kazitsu
+    case kinoko
+    case sou
+    case gyokai
+    case niku
+    case tamago
+    case nyuu
+    case yushi
+    case kashi
+    case sikouinryou
+    case tyoumiryou
+    case tyourizumi
     
     var name: String {
         switch self {
-        case .kokurui: return "１ 穀類"
+        case .koku: return "１ 穀類"
         case .imo: return "２ いも及びでん粉類"
         case .satou: return "３ 砂糖及び甘味類"
-            //        case .kokurui: return Self.defaultCategory[CategoryType.kokurui.rawValue]
-            //        case .imo: return Self.defaultCategory[CategoryType.imo.rawValue]
-            //        case .satou: return Self.defaultCategory[CategoryType.satou.rawValue]
+        case .mame: return "４ 豆類"
+        case .syuzitsu: return "5 種実類"
+        case .yasai: return "6 野菜類"
+        case .kazitsu: return "7 果実類"
+        case .kinoko: return "8 きのこ類"
+        case .sou: return "9 藻類"
+        case .gyokai: return "10 魚介類"
+        case .niku: return "11 肉類"
+        case .tamago: return "12 卵類"
+        case .nyuu: return "13 乳類"
+        case .yushi: return "14 油脂類"
+        case .kashi: return "15 菓子類"
+        case .sikouinryou: return "16 し好飲料類"
+        case .tyoumiryou: return "17 調味料及び香辛料類"
+        case .tyourizumi: return "18　調理済み流通食品類"
         }
     }
     
@@ -83,20 +126,17 @@ enum KetogenicIndexType: Int, CaseIterable {
 //データベースから返ってくる値
 struct FoodCompositionRealm {
     var id: Int?
+    var food_code: Int?
+    var food_name: String?
+    var energy: Int?
+    var water: Double?
     var protein: Double?
     var fat: Double?
+    var dietaryfiber: Double?
     var carbohydrate: Double?
     var sugar: Double?
     var category: String?
 }
-
-//protocol KetogenicIndexTypeProtocol {
-//    var protein: Double { get }
-//    var fat: Double { get }
-//    optional var carbohydrate: Double { get }
-//    optional var sugar: Double { get }
-//    optional var ratioValue: Double?
-//}
 
 //struct KetogenicRatio { // Protein Fat Carbohydrate
 //
@@ -331,19 +371,30 @@ struct PFS { // Protein Fat Sugar
 struct FoodComposition: Equatable {
     
     var id: Int?
+    var food_code: Int
+    var food_name: String
+    var energy: Int
+    var water: Double
     var protein: Double
     var fat: Double
+    var dietaryfiber: Double
     var carbohydrate: Double
     var sugar: Double
     var category: String
+    
     var weight:Double = 100.0
     
     init(food: FoodCompositionRealm) {
         //これがOKなのかどうか
-        self.id = food.id ?? UUID().hashValue
+        self.id = food.id
+        self.food_code = food.food_code ?? 0
+        self.food_name = food.food_name ?? ""
+        self.energy = food.energy ?? 0
+        self.water = food.water ?? 0
         self.protein = food.protein ?? 0
         self.fat = food.fat ?? 0
         self.carbohydrate = food.carbohydrate ?? 0
+        self.dietaryfiber = food.dietaryfiber ?? 0
         self.sugar = food.sugar ?? 0
         self.category = food.category ?? ""
     }
@@ -354,13 +405,85 @@ struct SelectFood {
     let weight: Double
 }
 
-//Tableの単純な合計等
+
 class FoodTableUseCase {
+
+}
+
+extension Array where Element == FoodComposition {
     
-    var selectedFoods: [FoodComposition] = []
+    func filterFoods(by composition: Composition) -> [FoodComposition] {
+        
+        var filetedFoods: [FoodComposition] = []
+        
+        switch composition {
+        case .energy(min: let min, max: let max):
+            filetedFoods = self.filter {
+                guard let min = min , let max = max else { return false }
+                return $0.energy >= min && $0.energy <= max
+            }
+        case .water(min: let min, max: let max):
+            filetedFoods = self.filter {
+                guard let min = min , let max = max else { return false }
+                return $0.water >= min && $0.water <= max
+            }
+        case .protein(let min, let max):
+            filetedFoods = self.filter {
+                guard let min = min , let max = max else { return false }
+                return $0.protein >= min && $0.protein <= max
+            }
+        case .fat(min: let min, max: let max):
+            filetedFoods = self.filter {
+                guard let min = min , let max = max else { return false }
+                return $0.fat >= min && $0.fat <= max
+            }
+        case .dietaryfiber(min: let min, max: let max):
+            filetedFoods = self.filter {
+                guard let min = min , let max = max else { return false }
+                return $0.dietaryfiber >= min && $0.dietaryfiber <= max
+            }
+        case .carbohydrate(min: let min, max: let max):
+            filetedFoods = self.filter {
+                guard let min = min , let max = max else { return false }
+                return $0.carbohydrate >= min && $0.carbohydrate <= max
+            }
+        case .weight(let min, let max):
+            filetedFoods = self.filter {
+                guard let min = min, let max = max else { return false }
+                return $0.weight >= min && $0.weight <= max
+            }
+        case .category(let category):
+            filetedFoods = self.filter {
+                let categoryName = category.name
+                return $0.category == categoryName
+            }
+        }
+        
+        return filetedFoods
+    }
+    
+    func sortedFoods(by composition: Composition) -> [FoodComposition] {
+        //昇順
+        switch composition {
+        case .energy: return self.sorted { $0.energy > $1.energy }
+        case .water: return self.sorted { $0.water > $1.water }
+        case .protein: return self.sorted { $0.protein > $1.protein }
+        case .fat: return self.sorted { $0.fat > $1.fat }
+        case .dietaryfiber: return self.sorted { $0.dietaryfiber > $1.dietaryfiber }
+        case .carbohydrate: return self.sorted { $0.carbohydrate > $1.carbohydrate }
+        case .weight:  return self.sorted { $0.weight > $1.weight }
+        case .category: return self
+        }
+    }
+}
+
+//Tableの単純な合計等
+class SelectFoodTableUseCase {
+    
+    var selectedFoods: [SelectFood] = []
     
     //TODO: selectedFoods -> userSelectFoods へ変更
-    var userSelectFoods: [SelectFood] = []
+    //    var userSelectFoods: [SelectFood] = []
     
     //選んだ食品数 ApplicationService
     var totalSelectedFoodCount: Int {
@@ -368,30 +491,59 @@ class FoodTableUseCase {
     }
     
     //DomainService
+    //O(1)である必要がある？
     var totalProtein: Double {
-        selectedFoods.reduce(0) { totalProtein, food in
-            let protein = food.protein
+        selectedFoods.reduce(0) { totalProtein, selectfood in
+            let protein = selectfood.food.protein * ( selectfood.weight / 100 )
             return totalProtein + protein
         }
     }
     
+    var totalFat: Double {
+        selectedFoods.reduce(0) { totalFat, selectfood in
+            let fat = selectfood.food.fat * ( selectfood.weight / 100 )
+            return totalFat + fat
+        }
+    }
+    
+    var totalCarbohydrate: Double {
+        selectedFoods.reduce(0) { totalCarbohydrate, selectfood in
+            let carbohydrate = selectfood.food.carbohydrate * ( selectfood.weight / 100 )
+            return totalCarbohydrate + carbohydrate
+        }
+    }
+    
+    var totalDietaryFiber: Double {
+        selectedFoods.reduce(0) { totalDietaryFiber, selectfood in
+            let dietaryFiber = selectfood.food.dietaryfiber * ( selectfood.weight / 100 )
+            return totalDietaryFiber + dietaryFiber
+        }
+    }
+    
+    var totalWater: Double {
+        selectedFoods.reduce(0) { totalWater, selectfood in
+            let water = selectfood.food.water * ( selectfood.weight / 100 )
+            return totalWater + water
+        }
+    }
+    
     var totalWeight: Double {
-        selectedFoods.reduce(0) { totalWeight, food in
-            let weight = food.weight
+        selectedFoods.reduce(0) { totalWeight, selectFood in
+            let weight = selectFood.weight
             return totalWeight + weight
         }
     }
     
-    func add(food: FoodComposition, to foodList:[FoodComposition])  -> [FoodComposition] {
+    func add(selectFood: SelectFood, to foodList:[SelectFood])  -> [SelectFood] {
         var foodList = foodList
-        foodList.append(food)
+        foodList.append(selectFood)
         return foodList
     }
     
-    func delete(food: FoodComposition, from foodList: [FoodComposition]) -> [FoodComposition]{
+    func delete(selectFood: SelectFood, from foodList: [SelectFood]) -> [SelectFood]{
         var foodList = foodList
         for i in 0...(foodList.count - 1) {
-            if foodList[i].id == food.id {
+            if foodList[i].food.id == selectFood.food.id {
                 foodList.remove(at: i)
                 print(foodList)
                 return foodList
@@ -415,159 +567,68 @@ class FoodTableUseCase {
     //    }
 }
 
-extension Array where Element == FoodComposition {
-    
-    func filterFoods(by composition: Composition) -> [FoodComposition] {
-        
-        var filetedFoods: [FoodComposition] = []
-        switch composition {
-        case .protein(let min, let max):
-            filetedFoods = self.filter {
-                guard let min = min , let max = max else { return false }
-                return $0.protein >= min && $0.protein <= max
-            }
-        case .weight(let min, let max):
-            filetedFoods = self.filter {
-                guard let min = min, let max = max else { return false }
-                return $0.weight >= min && $0.weight <= max
-            }
-        case .category(let category):
-            filetedFoods = self.filter {
-                let categoryName = category.name
-                return $0.category == categoryName
-            }
-        }
-        
-        return filetedFoods
-    }
-    
-    
-    func sortedFoods(by composition: Composition) -> [FoodComposition] {
-        //昇順
-        switch composition {
-        case .protein: return self.sorted { $0.protein > $1.protein }
-        case .weight:  return self.sorted { $0.weight > $1.weight }
-        case .category: return self
-        }
-    }
-}
+//これは食品交換表に対して行うもの
+//SelectFoodsには行わない
 
 
+//元々のTableを表現する機能と
+//せぇctされたTableを表現する機能に分ける必要がある。
 //イニシャライズ
-class FoodTableUseCaseTest: XCTestCase {
+class SelectFoodTableUseCaseTest: XCTestCase {
     
-    let foodTableUseCase = FoodTableUseCase()
+    let foodTableUseCase = SelectFoodTableUseCase()
     
-    //    static let testFoods = [
-    //        FoodComposition(food: FoodCompositionRealm(id: 1,
-    //                                                   protein: 20,
-    //                                                   category: "１ 穀類")),
-    //        FoodComposition(food: FoodCompositionRealm(id: 2,
-    //                                                   protein: 30,
-    //                                                   category: "２ いも及びでん粉類")),
-    //        FoodComposition(food: FoodCompositionRealm(id: 3,
-    //                                                   protein: 40,
-    //                                                   category: "２ いも及びでん粉類")),
-    //        FoodComposition(food: FoodCompositionRealm(id: 4,
-    //                                                   protein: 50,
-    //                                                   category: "18　調理済み流通食品類")),
-    //        FoodComposition(food: FoodCompositionRealm(id: 5,
-    //                                                   protein: 60,
-    //                                                   category: "１ 穀類")),
-    //        FoodComposition(food: FoodCompositionRealm(id: 6,
-    //                                                   protein: 70,
-    //                                                   category: "18　調理済み流通食品類")),
-    //        FoodComposition(food: FoodCompositionRealm(id: 7,
-    //                                                   protein: 20,
-    //                                                   category: "１ 穀類"))
-    //    ]
-    
-    
-    let food =  FoodComposition(food: FoodCompositionRealm(id: 2,
-                                                           protein: 1,
-                                                           category: ""))
+    let selectFood
+    = SelectFood(food:
+                    FoodComposition(food:
+                                        FoodCompositionRealm(id: 2,
+                                                             protein: 1,
+                                                             category: "")),
+                 weight: 50)
     
     //nonEffected
-    let testFoods = [
-        FoodComposition(food: FoodCompositionRealm(id: 1,
-                                                   protein: 20,
-                                                   category: "１ 穀類")),
-        FoodComposition(food: FoodCompositionRealm(id: 2,
-                                                   protein: 40,
-                                                   category: "２ いも及びでん粉類")),
-        FoodComposition(food: FoodCompositionRealm(id: 3,
-                                                   protein: 100,
-                                                   category: "２ いも及びでん粉類"))
+    let testSelectFoods = [
+        SelectFood(food: FoodComposition(food: FoodCompositionRealm(id: 1,protein: 20,category: "１ 穀類")),
+                   weight: 100),
+        SelectFood(food: FoodComposition(food: FoodCompositionRealm(id: 2,protein: 40,category: "２ いも及びでん粉類")),
+                   weight: 100),
+        SelectFood(food: FoodComposition(food: FoodCompositionRealm(id: 3,protein: 100,category: "２ いも及びでん粉類")),
+                   weight: 100)
     ]
     
-    func test_エラーメッセージを表示させること() {
-        let Nil:Int? = nil
-        XCTAssertNotNil(Nil,"エラーメッセージが表示される")
-    }
+    let testTableFoods = [
+        FoodComposition(food: FoodCompositionRealm(id: 1,protein: 20,category: "１ 穀類")),
+        FoodComposition(food: FoodCompositionRealm(id: 2,protein: 40,category: "２ いも及びでん粉類")),
+        FoodComposition(food: FoodCompositionRealm(id: 3,protein: 100,category: "２ いも及びでん粉類"))
+    ]
     
     func test_配列に含まれた食品総数の算出(){
-        
-        foodTableUseCase.selectedFoods = testFoods
-        
+        foodTableUseCase.selectedFoods = testSelectFoods
         let totalFoodsCount = foodTableUseCase.totalSelectedFoodCount
-        XCTAssertEqual(totalFoodsCount, testFoods.count)
+        XCTAssertEqual(totalFoodsCount, testSelectFoods.count)
     }
     
-//    func test_ケトン指標の算出() {
-//        //状態
-//        let pfc = PFC(protein: 1, fat: 4, carbohydrate: 1)
-//        let pfs = PFS(protein: 1, fat: 4, sugar: 1)
-//        XCTContext.runActivity(named: "ケトン指標の算出") { _ in
-//            XCTContext.runActivity(named: "ケトン比の算出") { _ in
-//                //操作
-//                let ketogenicRatio = pfc.ketogenicRatio
-//                //検証
-//                let expected = 2.0
-//                XCTAssertEqual(ketogenicRatio, expected)
-//            }
-//
-//            XCTContext.runActivity(named: "ケトン指数の算出") { _ in
-//                //操作
-//                let ketogenicIndex = pfc.ketogenicIndex
-//                //検証
-//                let expected = 2.1
-//
-//                XCTAssertEqual(ketogenicIndex, expected)
-//            }
-//
-//            XCTContext.runActivity(named: "ケトン値") { _ in
-//                //操作
-//                let ketogenicValue = pfs.ketogenicValue
-//                //検証
-//                let expected = 3.0
-//
-//                XCTAssertEqual(ketogenicValue, expected)
-//            }
-//        }
-//
-//    }
+    func test_ケトン比の算出() {
+        //状態
+        let pfc = PFC(protein: 1, fat: 4, carbohydrate: 1)
+        //操作?
+        let ketogenicRatio = pfc.ketogenicRatio
+        //検証
+        let expected = 2.0
+        
+        XCTAssertEqual(ketogenicRatio, expected)
+    }
     
-        func test_ケトン比の算出() {
-            //状態
-            let pfc = PFC(protein: 1, fat: 4, carbohydrate: 1)
-            //操作?
-            let ketogenicRatio = pfc.ketogenicRatio
-            //検証
-            let expected = 2.0
-    
-            XCTAssertEqual(ketogenicRatio, expected)
-        }
-    
-        func test_ケトン指数の算出() {
-            //状態
-            let pfc = PFC(protein: 1, fat: 4, carbohydrate: 1)
-            //操作？
-            let ketogenicIndex = pfc.ketogenicIndex
-            //検証
-            let expected = 2.1
-    
-            XCTAssertEqual(ketogenicIndex, expected)
-        }
+    func test_ケトン指数の算出() {
+        //状態
+        let pfc = PFC(protein: 1, fat: 4, carbohydrate: 1)
+        //操作？
+        let ketogenicIndex = pfc.ketogenicIndex
+        //検証
+        let expected = 2.1
+        
+        XCTAssertEqual(ketogenicIndex, expected)
+    }
     
     func test_ケトン値の算出() {
         //状態
@@ -576,7 +637,7 @@ class FoodTableUseCaseTest: XCTestCase {
         let ketogenicValue = pfs.ketogenicValue
         //検証
         let expected = 3.0
-
+        
         XCTAssertEqual(ketogenicValue, expected)
     }
     //
@@ -617,7 +678,7 @@ class FoodTableUseCaseTest: XCTestCase {
         //状態
         
         //操作
-        let filterdFoods = testFoods.filterFoods(by: .protein(min: nil, max: nil))
+        let filterdFoods = testTableFoods.filterFoods(by: .protein(min: nil, max: nil))
         //検証
         let expected:[FoodComposition] = []
         XCTAssertEqual(filterdFoods, expected)
@@ -627,7 +688,7 @@ class FoodTableUseCaseTest: XCTestCase {
         //状態
         
         //操作
-        let filterdFoods = testFoods.filterFoods(by: .protein(min: 20, max: 50))
+        let filterdFoods = testTableFoods.filterFoods(by: .protein(min: 20, max: 50))
         //検証
         let expected:[FoodComposition] = [
             FoodComposition(food: FoodCompositionRealm(id: 1,
@@ -635,7 +696,7 @@ class FoodTableUseCaseTest: XCTestCase {
                                                        category: "１ 穀類")),
             FoodComposition(food: FoodCompositionRealm(id: 2,
                                                        protein: 40,
-                                                       category: "２ いも及びでん粉類")),
+                                                       category: "２ いも及びでん粉類"))
         ]
         
         XCTAssertEqual(filterdFoods, expected)
@@ -645,7 +706,7 @@ class FoodTableUseCaseTest: XCTestCase {
         //状態
         
         //操作
-        let filterdFoods = testFoods.filterFoods(by: .category(.kokurui))
+        let filterdFoods = testTableFoods.filterFoods(by: .category(.koku))
         //検証
         let expected:[FoodComposition] = [
             FoodComposition(food: FoodCompositionRealm(id: 1,
@@ -660,9 +721,9 @@ class FoodTableUseCaseTest: XCTestCase {
         //状態
         
         //操作
-        let sortedSelectFoods = testFoods.sortedFoods(by: .category(.imo))
+        let sortedSelectFoods = testTableFoods.sortedFoods(by: .category(.imo))
         //検証
-        let expected = testFoods
+        let expected = testTableFoods
         
         XCTAssertEqual(sortedSelectFoods, expected)
     }
@@ -671,7 +732,7 @@ class FoodTableUseCaseTest: XCTestCase {
         //状態
         
         //操作
-        let sortedSelectFoods = testFoods.sortedFoods(by: .protein(min: nil, max: nil))
+        let sortedSelectFoods = testTableFoods.sortedFoods(by: .protein(min: nil, max: nil))
         //検証
         let expected = [
             FoodComposition(food: FoodCompositionRealm(id: 3,
@@ -692,7 +753,7 @@ class FoodTableUseCaseTest: XCTestCase {
         //状態
         
         //操作
-        let sortedSelectFoods = testFoods.sortedFoods(by: .protein(min: 20, max: 50))
+        let sortedSelectFoods = testTableFoods.sortedFoods(by: .protein(min: 20, max: 50))
         //検証
         let expected = [
             FoodComposition(food: FoodCompositionRealm(id: 3,
@@ -713,27 +774,25 @@ class FoodTableUseCaseTest: XCTestCase {
         //状態
         
         //操作
-        let addedSelectFoodList = foodTableUseCase.add(food: food, to: testFoods)
+        let addedSelectFoodList = foodTableUseCase.add(selectFood: selectFood, to: testSelectFoods)
         //検証
-        XCTAssertEqual(addedSelectFoodList.count, testFoods.count + 1)
+        XCTAssertEqual(addedSelectFoodList.count, testTableFoods.count + 1)
     }
     
     func test_選択された食品一覧からの削除_削除する配列の元の要素数に１を減じた値が返されること() {
         //状態
         
         //操作
-        let deletedSelectFoodList = foodTableUseCase.delete(food: food, from: testFoods)
+        let deletedSelectFoodList = foodTableUseCase.delete(selectFood: selectFood, from: testSelectFoods)
         //検証
-        XCTAssertEqual(deletedSelectFoodList.count, testFoods.count - 1)
+        XCTAssertEqual(deletedSelectFoodList.count, testSelectFoods.count - 1)
     }
 }
 //FoodTableUseCaseTest.defaultTestSuite.run()
 
 let globalSuite = XCTestSuite(name: "Global - All tests")
-globalSuite.addTest(FoodTableUseCaseTest.defaultTestSuite)
+globalSuite.addTest(SelectFoodTableUseCaseTest.defaultTestSuite)
 globalSuite.run()
-
-
 
 //let food =  FoodComposition(food: FoodCompositionRealm(id: 13,
 //                                                       protein: 1,
